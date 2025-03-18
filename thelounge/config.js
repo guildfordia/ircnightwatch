@@ -1,0 +1,20 @@
+module.exports = {
+  defaults: {
+    name: "nightwatch.atelier",
+    host: "172.18.0.2",
+    port: 6667,
+    nick: "toto",
+    username: "toto",
+    realname: "Antoine",
+    password: "",
+    tls: false,
+    rejectUnauthorized: false,
+    join: "#nightwatch",
+  },
+  public: true,
+  host: "0.0.0.0",
+  bind: ["0.0.0.0"],
+  port: 9000,
+  theme: 'Abyss',
+  reverseProxy: true,
+};

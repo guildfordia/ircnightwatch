@@ -1,0 +1,11 @@
+# Ignore .env file (only track .env.example)
+.env
+
+# Ignore .idea file
+.idea/
+
+# Ignore Docker volumes and build files
+dist/
+build/
+.cache/
+.DS_Store
