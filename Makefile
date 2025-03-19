@@ -11,13 +11,6 @@ all: check-env build up
 
 re: down build up
 
-# Check if .env file exists, if not, copy .env.example to .env
-check-env:
-	@if [ ! -f .env ]; then \
-		echo "No .env file found. Copying .env.example to .env..."; \
-		cp .env.example .env; \
-	fi
-
 # Build the Docker images
 build:
 	$(DOCKER_COMPOSE) build
