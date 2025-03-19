@@ -1,0 +1,208 @@
+<template>
+  <div id="connect" class="window" role="tabpanel" aria-label="Connect">
+    <div class="header">
+      <SidebarToggle />
+    </div>
+    <form class="container" method="post" action="" @submit.prevent="onSubmit">
+      <h1 class="title">
+        <template v-if="defaults.uuid">
+          <input v-model="defaults.uuid" type="hidden" name="uuid" />
+          Edit {{ defaults.name }}
+        </template>
+        <template v-else>
+          Connect
+          <template v-if="config?.lockNetwork && store?.state.serverConfiguration?.public">
+            to {{ defaults.name }}
+          </template>
+        </template>
+      </h1>
+
+      <!-- Only show the username field -->
+      <div class="connect-row">
+        <label for="connect:username">Username</label>
+        <input
+            id="connect:username"
+            ref="usernameInput"
+            v-model.trim="defaults.username"
+            class="input username"
+            name="username"
+            maxlength="100"
+            @input="onUsernameChanged"
+        />
+      </div>
+
+      <!-- Hidden fields for other values -->
+      <input type="hidden" v-model="defaults.nick" name="nick" />
+      <input type="hidden" v-model="defaults.realname" name="realname" />
+      <input type="hidden" v-model="defaults.host" name="host" />
+      <input type="hidden" v-model="defaults.port" name="port" />
+      <input type="hidden" v-model="defaults.tls" name="tls" />
+      <input type="hidden" v-model="defaults.password" name="password" />
+      <!-- Add other hidden fields as needed -->
+
+      <div>
+        <button type="submit" class="btn" :disabled="disabled ? true : false">
+          <template v-if="defaults.uuid">Save network</template>
+          <template v-else>Connect</template>
+        </button>
+      </div>
+    </form>
+  </div>
+</template>
+
+<style>
+#connect .connect-auth {
+  display: block;
+  margin-bottom: 10px;
+}
+
+#connect .connect-auth .opt {
+  display: block;
+  width: 100%;
+}
+
+#connect .connect-auth input {
+  margin: 3px 10px 0 0;
+}
+
+#connect .connect-sasl-external {
+  padding: 10px;
+  border-radius: 2px;
+  background-color: #d9edf7;
+  color: #31708f;
+}
+
+#connect .connect-sasl-external pre {
+  margin: 0;
+  user-select: text;
+}
+</style>
+
+<script lang="ts">
+import RevealPassword from "./RevealPassword.vue";
+import SidebarToggle from "./SidebarToggle.vue";
+import {defineComponent, nextTick, PropType, ref, watch} from "vue";
+import {useStore} from "../js/store";
+import {ClientNetwork} from "../js/types";
+
+export type NetworkFormDefaults = Partial<ClientNetwork> & {
+  join?: string;
+};
+
+export default defineComponent({
+  name: "NetworkForm",
+  components: {
+    RevealPassword,
+    SidebarToggle,
+  },
+  props: {
+    handleSubmit: {
+      type: Function as PropType<(network: ClientNetwork) => void>,
+      required: true,
+    },
+    defaults: {
+      type: Object as PropType<NetworkFormDefaults>,
+      required: true,
+    },
+    disabled: Boolean,
+  },
+  setup(props) {
+    const store = useStore();
+    const config = ref(store.state.serverConfiguration);
+    //const previousUsername = ref(props.defaults?.username);
+    const displayPasswordField = ref(false);
+
+    const publicPassword = ref<HTMLInputElement | null>(null);
+
+    watch(displayPasswordField, (newValue) => {
+      if (newValue) {
+        void nextTick(() => {
+          publicPassword.value?.focus();
+        });
+      }
+    });
+
+    const commandsInput = ref<HTMLInputElement | null>(null);
+
+    const resizeCommandsInput = () => {
+      if (!commandsInput.value) {
+        return;
+      }
+
+      // Reset height first so it can down size
+      commandsInput.value.style.height = "";
+
+      // 2 pixels to account for the border
+      commandsInput.value.style.height = `${Math.ceil(
+          commandsInput.value.scrollHeight + 2
+      )}px`;
+    };
+
+    watch(
+        () => props.defaults?.commands,
+        () => {
+          void nextTick(() => {
+            resizeCommandsInput();
+          });
+        }
+    );
+
+    watch(
+        () => props.defaults?.tls,
+        (isSecureChecked) => {
+          const ports = [6667, 6697];
+          const newPort = isSecureChecked ? 0 : 1;
+
+          // If you disable TLS and current port is 6697,
+          // set it to 6667, and vice versa
+          if (props.defaults?.port === ports[newPort]) {
+            props.defaults.port = ports[1 - newPort];
+          }
+        }
+    );
+
+    const setSaslAuth = (type: string) => {
+      if (props.defaults) {
+        props.defaults.sasl = type;
+      }
+    };
+
+    const usernameInput = ref<HTMLInputElement | null>(null);
+
+    const onUsernameChanged = (event: Event) => {
+      const username = (event.target as HTMLInputElement).value;
+
+      // Update the username, nick, and realname fields
+      if (props.defaults) {
+        props.defaults.username = username;
+        props.defaults.nick = username; // Sync nick with username
+        props.defaults.realname = username; // Sync realname with username
+      }
+    };
+
+    const onSubmit = (event: Event) => {
+      const formData = new FormData(event.target as HTMLFormElement);
+      const data: Partial<ClientNetwork> = {};
+
+      formData.forEach((value, key) => {
+        data[key] = value;
+      });
+
+      props.handleSubmit(data as ClientNetwork);
+    };
+
+    return {
+      store,
+      config,
+      displayPasswordField,
+      publicPassword,
+      commandsInput,
+      resizeCommandsInput,
+      setSaslAuth,
+      usernameInput,
+      onUsernameChanged,
+      onSubmit,
+    };
+  },
+});
+</script>

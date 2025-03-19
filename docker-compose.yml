@@ -15,7 +15,7 @@ services:
 
 
   thelounge:
-    image: lscr.io/linuxserver/thelounge:latest
+    build: ./thelounge
     container_name: thelounge
     ports:
       - "9000:9000"  # Web client
@@ -24,7 +24,12 @@ services:
       - PGID=1000
       - TZ=Etc/UTC
     volumes:
-      - ./thelounge:/config
+      - ./thelounge/config:/config
+      - ./thelounge/themes/abyss.css:/app/thelounge/client/themes/default.css
+      - ./thelounge/themes/abyss.css:/app/thelounge/public/themes/default.css
+      #- ./thelounge/components/NetworkForm.vue:/app/thelounge/client/components/NetworkForm.vue
+      #- ./thelounge/components/App.vue:/app/thelounge/client/components/App.vue
+      #- ./thelounge/components/Sidebar.vue:/app/thelounge/client/components/Sidebar.vue
     depends_on:
       - ngircd
     restart: unless-stopped
@@ -35,6 +40,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx:/etc/nginx
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      #- ./nginx/html:/usr/share/nginx/html
     depends_on:
       - thelounge
