@@ -12,9 +12,13 @@ COPY source/client/js/socket-events/msg.ts /app/thelounge/client/js/socket-event
 
 COPY source/shared/types /app/thelounge/shared/types
 
-#COPY assets/theodore.jpg /app/thelounge/public/img/theodore.jpg
+COPY assets/theodore.jpg /app/thelounge/public/img/theodore.jpg
 
-#COPY source/client/css/style.css /app/thelounge/client/css/style.css
+COPY source/client/css/style.css /app/thelounge/client/css/style.css
+
+COPY source/client/css/style.css /app/thelounge/public/css/style.css
+
+COPY source/client/css/style.css /app/thelounge/client/css/style.css
 
 #COPY source/client/components/MessageSearchForm.vue /app/thelounge/client/components/MessageSearchForm.vue
 

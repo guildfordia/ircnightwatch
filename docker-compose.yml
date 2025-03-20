@@ -27,7 +27,9 @@ services:
       - ./thelounge/config:/config
       #- ./thelounge/themes/abyss.css:/app/thelounge/client/themes/default.css
       - ./thelounge/themes/abyss.css:/app/thelounge/public/themes/default.css
-      #- ./thelounge/assets/theodore.jpg:/app/thelounge/public/img/theodore.jpg
+      - ./thelounge/themes/morning.css:/app/thelounge/public/themes/morning.css
+      - ./thelounge/assets/theodore.jpg:/app/thelounge/public/img/theodore.jpg
+      #- ./thelounge/source/client/css/style.css:/app/thelounge/client/css/style.css
     depends_on:
       - ngircd
     restart: unless-stopped
