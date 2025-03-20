@@ -25,11 +25,9 @@ services:
       - TZ=Etc/UTC
     volumes:
       - ./thelounge/config:/config
-      - ./thelounge/themes/abyss.css:/app/thelounge/client/themes/default.css
+      #- ./thelounge/themes/abyss.css:/app/thelounge/client/themes/default.css
       - ./thelounge/themes/abyss.css:/app/thelounge/public/themes/default.css
-      #- ./thelounge/components/NetworkForm.vue:/app/thelounge/client/components/NetworkForm.vue
-      #- ./thelounge/components/App.vue:/app/thelounge/client/components/App.vue
-      #- ./thelounge/components/Sidebar.vue:/app/thelounge/client/components/Sidebar.vue
+      #- ./thelounge/assets/theodore.jpg:/app/thelounge/public/img/theodore.jpg
     depends_on:
       - ngircd
     restart: unless-stopped
