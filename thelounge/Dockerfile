@@ -20,6 +20,8 @@ COPY source/client/css/style.css /app/thelounge/public/css/style.css
 
 COPY source/client/css/style.css /app/thelounge/client/css/style.css
 
+COPY source/client/components/MessageTypes/join.vue /app/thelouge/client/components/MessageTypes/join.vue
+
 #COPY source/client/components/MessageSearchForm.vue /app/thelounge/client/components/MessageSearchForm.vue
 
 #COPY source/client/components/Chat.vue /app/thelounge/client/components/Chat.vue
