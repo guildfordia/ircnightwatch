@@ -1,0 +1,8 @@
+irc
+flask
+requests
+transformers
+torch
+torchvision
+torchaudio
+deep-translator

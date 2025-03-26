@@ -2,7 +2,7 @@
 .env
 
 # Ignore .idea file
-.idea/
+../.idea/
 
 # Ignore Docker volumes and build files
 dist/

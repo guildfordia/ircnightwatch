@@ -12,10 +12,12 @@ services:
     ports:
       - 6667:6667
     restart: unless-stopped
+    networks:
+      - irc-net
 
 
   thelounge:
-    build: ./thelounge
+    build: thelounge
     container_name: thelounge
     ports:
       - "9000:9000"  # Web client
@@ -34,6 +36,8 @@ services:
     depends_on:
       - ngircd
     restart: unless-stopped
+    networks:
+      - irc-net
 
   nginx:
     image: nginx:latest
@@ -45,3 +49,10 @@ services:
       #- ./nginx/html:/usr/share/nginx/html
     depends_on:
       - thelounge
+    networks:
+      - irc-net
+
+networks:
+  irc-net:
+    name: irc-net
+    external: true

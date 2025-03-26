@@ -1,13 +1,13 @@
 <template>
 	<span class="content">
 		<Username :user="message.from" />
-		<i class="hostmask">&#32;(<ParsedMessage :network="network" :text="message.hostmask" />)</i>
+		<!-- i class="hostmask">&#32;(<ParsedMessage :network="network" :text="message.hostmask" />)</i>
 		<template v-if="message.account">
 			<i class="account">&#32;[{{ message.account }}]</i>
 		</template>
 		<template v-if="message.gecos">
 			<i class="realname">&#32;({{ message.gecos }})</i>
-		</template>
+		</template -->
 		has joined the channel
 	</span>
 </template>

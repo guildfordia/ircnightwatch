@@ -1,46 +1,43 @@
-.PHONY: all build up re stop restart down clean ps logs rebuild check-env
+.PHONY: all build up stop down restart clean logs logs-% sh-% re network
 
-# Project Name
-PROJECT_NAME = ircnightwatch
+# Default: build & run all
+all: build up
 
-# Docker Compose
-DOCKER_COMPOSE = docker-compose
+# Ensure irc-net exists before anything that uses it
+network:
+	@docker network inspect irc-net >/dev/null 2>&1 || \
+	(docker network create irc-net && echo "Created network: irc-net")
 
-# Default target
-all: check-env build up
+build: network
+	$(MAKE) -C IRC build
+	$(MAKE) -C Sentiment build
 
-re: down build up
+up: network
+	$(MAKE) -C IRC up
+	$(MAKE) -C Sentiment up
 
-# Build the Docker images
-build:
-	$(DOCKER_COMPOSE) build
+# Add `network` dependency here too
+clean: network
+	-$(MAKE) -C Sentiment clean
+	-$(MAKE) -C IRC clean
 
-# Start the containers in detached mode
-up:
-	$(DOCKER_COMPOSE) up -d
-
-# Stop the containers without removing them
 stop:
-	$(DOCKER_COMPOSE) stop
+	-$(MAKE) -C Sentiment stop
+	-$(MAKE) -C IRC stop
 
-# Restart the containers
+down:
+	-$(MAKE) -C Sentiment down
+	-$(MAKE) -C IRC down
+
 restart: stop up
 
-# Remove the containers and networks (but keep volumes)
-down:
-	$(DOCKER_COMPOSE) down
+# Add `network` dependency here too
+re: network clean build up
 
-# Clean up everything including volumes
-clean:
-	$(DOCKER_COMPOSE) down --volumes --remove-orphans
+logs-%:
+	-$(MAKE) -C IRC logs-$*
+	-$(MAKE) -C Sentiment logs-$*
 
-# View running containers
-ps:
-	$(DOCKER_COMPOSE) ps
-
-# Show logs in real-time
-logs:
-	$(DOCKER_COMPOSE) logs -f
-
-# Rebuild and restart everything
-rebuild: clean build up
+sh-%:
+	-$(MAKE) -C IRC sh-$*
+	-$(MAKE) -C Sentiment sh-$*

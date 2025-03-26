@@ -1,0 +1,40 @@
+services:
+  sentiment-api:
+    build:
+      context: ./API
+    container_name: sentiment-api
+    ports:
+      - "5000:5000"  # Expose to host if you want to test from Postman
+    networks:
+      - sentiment-net
+      - irc-net
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  sentiment-bot:
+    build:
+      context: ./Bot
+    container_name: sentiment-bot
+    networks:
+      - sentiment-net
+      - irc-net
+    restart: unless-stopped
+    environment:
+      - IRC_HOST=ngircd
+      - IRC_PORT=6667
+      - IRC_CHANNEL=#nightwatch
+      - IRC_NICKNAME=SentBot
+      - API_URL=http://sentiment-api:5000/receive
+      - PYTHONUNBUFFERED=1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  sentiment-net:
+    name: sentiment-net
+  irc-net:
+    external: true
