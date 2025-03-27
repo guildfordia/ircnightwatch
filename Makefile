@@ -1,3 +1,12 @@
+# Detect if Docker needs sudo
+DOCKER := $(shell docker ps >/dev/null 2>&1 || echo sudo)docker
+
+# Warn if user is not in the docker group and Docker needs sudo
+ifeq ($(DOCKER),sudodocker)
+$(warning ⚠️ You are not in the docker group. Running Docker with sudo.)
+$(warning 👉 To fix this permanently, run: sudo usermod -aG docker $$USER && newgrp docker)
+endif
+
 .PHONY: all build up stop down restart clean logs logs-% sh-% re network
 
 # Default: build & run all
@@ -5,8 +14,8 @@ all: build up
 
 # Ensure irc-net exists before anything that uses it
 network:
-	@docker network inspect irc-net >/dev/null 2>&1 || \
-	(docker network create irc-net && echo "Created network: irc-net")
+	@$(DOCKER) network inspect irc-net >/dev/null 2>&1 || \
+	($(DOCKER) network create irc-net && echo "Created network: irc-net")
 
 build: network
 	$(MAKE) -C IRC build
