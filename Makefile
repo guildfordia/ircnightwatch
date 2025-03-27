@@ -11,15 +11,18 @@ network:
 build: network
 	$(MAKE) -C IRC build
 	$(MAKE) -C Sentiment build
+	$(MAKE) -C BATMAN build
 
 up: network
 	$(MAKE) -C IRC up
 	$(MAKE) -C Sentiment up
+	$(MAKE) -C BATMAN setup-host
 
 # Add `network` dependency here too
 clean: network
 	-$(MAKE) -C Sentiment clean
 	-$(MAKE) -C IRC clean
+	-$(MAKE) -C BATMAN clean
 
 stop:
 	-$(MAKE) -C Sentiment stop
