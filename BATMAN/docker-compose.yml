@@ -1,0 +1,11 @@
+services:
+  batman-node:
+    image: batman-node
+    privileged: true
+    network_mode: "host"
+    environment:
+      - MESH_IP=192.168.199.10  # customize per node
+    volumes:
+      - /lib/modules:/lib/modules
+      - /lib/firmware:/lib/firmware
+    restart: unless-stopped
