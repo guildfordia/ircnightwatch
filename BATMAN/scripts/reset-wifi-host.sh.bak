@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -e
+
+echo "[+] Resetting Wi-Fi interface for BATMAN mesh"
+
+# Interface name
+IFACE="wlan0"
+
+# Stop common Wi-Fi management services
+echo "[+] Stopping Wi-Fi managers..."
+sudo systemctl stop wpa_supplicant || true
+sudo systemctl stop dhcpcd || true
+sudo systemctl stop NetworkManager || true
+
+# Disable them at boot if you want this device dedicated to mesh
+echo "[+] Disabling wpa_supplicant (optional)..."
+sudo systemctl disable wpa_supplicant || true
+
+# Kill any stray processes
+echo "[+] Killing leftover processes..."
+sudo killall wpa_supplicant 2>/dev/null || true
+sudo killall dhcpcd 2>/dev/null || true
+
+# Reset interface
+echo "[+] Resetting interface: $IFACE"
+sudo ip link set $IFACE down || true
+sudo iw $IFACE set type ibss
+sudo ip link set $IFACE up
+
+# Confirm IBSS mode
+echo "[+] Checking interface mode..."
+iw dev $IFACE info | grep -i type
+
+echo "[✔] Wi-Fi interface '$IFACE' is ready for mesh"
+echo "➡ You can now start your BATMAN Docker container."

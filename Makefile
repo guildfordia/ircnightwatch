@@ -25,7 +25,7 @@ build: network
 up: network
 	$(MAKE) -C IRC up
 	$(MAKE) -C Sentiment up
-	$(MAKE) -C BATMAN setup-host
+	$(MAKE) -C BATMAN all
 
 # Add `network` dependency here too
 clean: network
@@ -44,7 +44,10 @@ down:
 restart: stop up
 
 # Add `network` dependency here too
-re: network clean build up
+re:
+	$(MAKE) -C Sentiment re
+	$(MAKE) -C IRC re
+	$(MAKE) -C BATMAN re
 
 logs-%:
 	-$(MAKE) -C IRC logs-$*
@@ -53,3 +56,6 @@ logs-%:
 sh-%:
 	-$(MAKE) -C IRC sh-$*
 	-$(MAKE) -C Sentiment sh-$*
+
+status:
+	$(MAKE) -C BATMAN status
