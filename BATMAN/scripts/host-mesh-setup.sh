@@ -3,10 +3,14 @@ set -e
 
 ENV_FILE=".batman.env"
 EXAMPLE_FILE=".batman.env.example"
-IFACE=${IFACE:-$(iw dev | awk '$1=="Interface"{print $2}' | head -n1)}
 
 # Load .batman.env if it exists
-export $(grep -v '^#' "$ENV_FILE" | xargs)
+if [[ -f "$ENV_FILE" ]]; then
+  export $(grep -v '^#' "$ENV_FILE" | xargs)
+fi
+
+# Try to detect IFACE if still not set
+IFACE=${IFACE:-$(iw dev | awk '$1=="Interface"{print $2}' | head -n1)}
 
 # Defaults
 MESH_ID=${MESH_ID:-batmesh}
