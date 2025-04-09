@@ -17,6 +17,14 @@ sentiment_model = pipeline(
 
 app = Flask(__name__)
 
+def send_to_max(data):
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        message = json.dumps(data)
+        sock.sendto(message.encode(), (MAX_HOST, MAX_PORT))
+    except Exception as e:
+        print(f"[ERROR] Failed to send to Max: {e}")
+
 def translate_to_english(text):
     try:
         translated = GoogleTranslator(source='auto', target='en').translate(text)
@@ -63,7 +71,7 @@ def receive():
     print(f"Selected sentiment score: {primary_sentiment:.2f}")
     print("=" * 40)
 
-    return jsonify({
+    max_data = {
         "id": datetime.datetime.now(),
         "values":{
             'sentiment': {
@@ -75,7 +83,11 @@ def receive():
                 'output': primary_score
             }
         }
-    }), 201
+    }
+
+    send_to_max(max_data)
+
+    return jsonify(max_data), 201
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

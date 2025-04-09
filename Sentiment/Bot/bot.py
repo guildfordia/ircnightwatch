@@ -28,7 +28,6 @@ NICKNAME = os.getenv("IRC_NICKNAME", "SentimentBot")
 # JSON API Endpoint
 API_URL = os.getenv("API_URL", f"http://{SERVER}:5000/receive")
 
-
 def connect_to_irc():
     """Connect to the IRC server and listen for messages"""
     irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
