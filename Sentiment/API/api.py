@@ -54,9 +54,9 @@ def receive():
 
     # Pick the most likely emotion
     # primary_emotion = top_emotions[0]['label']
-    primary_score = top_emotions[0]['score']
+    primary_emotion = top_emotions[0]['label']
 
-    primary_sentiment = top_sentiment[0]['score']
+    primary_sentiment = top_sentiment[0]['label']
 
     print("=" * 40)
     print(f"User       : {user}")
@@ -65,12 +65,12 @@ def receive():
     print("\nEmotion results:")
     for e in top_emotions:
         print(f"  - {e['label']}: {e['score']:.2f}")
-    print(f"Selected emotion score: {primary_score:.2f}")
+    print(f"Selected emotion label: {primary_emotion}")
 
     print("\nSentiment results:")
     for s in top_sentiment:
         print(f"  - {s['label']}: {s['score']:.2f}")
-    print(f"Selected sentiment score: {primary_sentiment:.2f}")
+    print(f"Selected sentiment label: {primary_sentiment}")
     print("=" * 40)
 
     max_data = {
@@ -82,7 +82,7 @@ def receive():
             },
             'emotion': {
                 'probas': emo_result,
-                'output': primary_score
+                'output': primary_emotion
             }
         }
     }
