@@ -3,7 +3,6 @@ from transformers import pipeline
 from deep_translator import GoogleTranslator
 import datetime
 
-ft_save_directory = "./fr_eng_save_pretrained"
 emotion_model = pipeline(
      "text-classification",
      model="j-hartmann/emotion-english-distilroberta-base",
@@ -16,6 +15,9 @@ sentiment_model = pipeline(
 )
 
 app = Flask(__name__)
+
+MAX_HOST="127.0.0.1"
+MAX_PORT="5000"
 
 def send_to_max(data):
     try:
