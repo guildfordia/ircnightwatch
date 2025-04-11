@@ -6,3 +6,7 @@ torch
 # torchvision
 # torchaudio
 deep-translator
+flask-socketio
+eventlet
+emoji
+hf_xet
