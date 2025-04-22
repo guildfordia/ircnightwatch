@@ -1,4 +1,3 @@
-
 services:
   ngircd:
     image: lscr.io/linuxserver/ngircd:latest
@@ -14,7 +13,6 @@ services:
     restart: unless-stopped
     networks:
       - irc-net
-
 
   thelounge:
     build: thelounge
@@ -32,7 +30,7 @@ services:
       - ./thelounge/themes/morning.css:/app/thelounge/public/themes/morning.css
       - ./thelounge/assets/theodore.jpg:/app/thelounge/public/img/theodore.jpg
       #- ./thelounge/source/client/css/style.css:/app/thelounge/client/css/style.css
-      - ./thelounge/source/client/components/MessageTypes/join.vue:/app/thelounge/client/components/MessageTypes/join.vue
+      #- ./thelounge/source/client/components/MessageTypes/join.vue:/app/thelounge/client/components/MessageTypes/join.vue
     depends_on:
       - ngircd
     restart: unless-stopped

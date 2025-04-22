@@ -22,6 +22,12 @@ COPY source/client/css/style.css /app/thelounge/client/css/style.css
 
 COPY source/client/components/MessageTypes/join.vue /app/thelounge/client/components/MessageTypes/join.vue
 
+COPY source/client/components/MessageTypes/part.vue /app/thelounge/client/components/MessageTypes/part.vue
+
+COPY source/client/components/MessageTypes/quit.vue /app/thelounge/client/components/MessageTypes/quit.vue
+
+COPY source/client/components/MessageTypes/whois.vue /app/thelounge/client/components/MessageTypes/whois.vue
+
 #COPY source/client/components/MessageSearchForm.vue /app/thelounge/client/components/MessageSearchForm.vue
 
 #COPY source/client/components/Chat.vue /app/thelounge/client/components/Chat.vue
