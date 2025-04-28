@@ -97,7 +97,7 @@ def receive():
 
     latest_results = max_data
 
-    print(json.dumps(max_data, indent=2))
+    # print(json.dumps(max_data, indent=2))
 
     socketio.emit('sentiment_event', max_data)
 
