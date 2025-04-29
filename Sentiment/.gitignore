@@ -1,5 +1,2 @@
 .sentiment.env
-./API/cache/version.txt
-./API/cache/xet
-./API/cache/models*
-./API/cache/.locks
+./API/cache/*
