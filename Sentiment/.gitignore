@@ -1,3 +1,5 @@
 .sentiment.env
-./API/cache/*
-./Bot/cache/*
+./API/cache/version.txt
+./API/cache/xet
+./API/cache/models*
+./API/cache/.locks
