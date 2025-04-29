@@ -223,7 +223,6 @@ def receive():
         logger.error(f"Error processing request: {e}")
         return jsonify({"error": str(e)}), 500
 
-
 if __name__ == '__main__':
     logger.info("Starting sentiment-api on port 6000...")
     try:
