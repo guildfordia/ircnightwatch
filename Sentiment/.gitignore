@@ -1,0 +1,3 @@
+.sentiment.env
+./API/cache/*
+./Bot/cache/*

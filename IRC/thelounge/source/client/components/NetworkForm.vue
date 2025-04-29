@@ -259,7 +259,7 @@
             autocomplete="off"
             class="input"
             name="leaveMessage"
-            placeholder="The Lounge - https://thelounge.chat"
+            placeholder="Nightwatch"
         />
       </div>
       <template v-if="defaults.uuid && !store.state.serverConfiguration?.public">
@@ -399,7 +399,7 @@ the server tab on new connection"
           </div>
         </template>
         <div v-else-if="defaults.sasl === 'external'" class="connect-sasl-external">
-          <p>The Lounge automatically generates and manages the client certificate.</p>
+          <p>Nightwatch automatically generates and manages the client certificate.</p>
           <p>
             On the IRC server, you will need to tell the services to attach the
             certificate fingerprint (certfp) to your account, for example:

@@ -1,0 +1,135 @@
+IMAGE_NAME=batman-node
+CONTAINER_NAME=batman-node
+ENV_FILE = .batman.env
+DC = docker-compose -f docker-compose.batman.yml
+
+# Configuration
+CONFIG = config/config.yml
+MONITOR_SCRIPT = scripts/monitor.sh
+
+# Python environment
+PYTHON = python3
+PIP = pip3
+
+.PHONY: all re install build up stop rm clean load-module setup-host status setup-batman-env check-platform \
+        validate monitor start stop-batman test-error-handling logs-batman sh-batman
+
+all: setup-batman-env install load-module build host-mesh-setup up
+
+install: setup-batman-env
+	@echo "[+] Running install script..."
+	@chmod +x scripts/*.sh
+	@./scripts/install.sh || echo "[!] Warning: BATMAN installation failed. Mesh networking will not work."
+
+load-module: setup-batman-env
+	@chmod +x scripts/*.sh
+	@./scripts/load-module.sh || echo "[!] Warning: Failed to load BATMAN module. Mesh networking will not work."
+
+build: setup-batman-env
+	@echo "[+] Building Docker image..."
+	$(DC) --env-file $(ENV_FILE) build
+
+host-mesh-setup: setup-batman-env
+	@echo "[+] Setting up BATMAN on host..."
+	@chmod +x scripts/host-mesh-setup.sh
+	@sudo scripts/host-mesh-setup.sh || echo "[!] Warning: Failed to setup BATMAN on host. Mesh networking will not work."
+
+up: validate
+	@echo "Starting BATMAN component..."
+	$(PYTHON) -c "from main import start; start()" &
+	@sleep 2
+	@$(MAKE) monitor
+
+stop:
+	@echo "[+] Stopping BATMAN container..."
+	$(DC) --env-file $(ENV_FILE) stop $(CONTAINER_NAME) || true
+
+rm:
+	@echo "[+] Removing BATMAN container..."
+	$(DC) --env-file $(ENV_FILE) rm $(CONTAINER_NAME) || true
+
+rmi:
+	docker rmi $(IMAGE_NAME) || true
+
+clean-batman-env:
+	rm -rf $(ENV_FILE)
+
+down:
+	$(DC) --env-file $(ENV_FILE) down
+
+clean:
+	$(DC) --env-file $(ENV_FILE) down --volumes --remove-orphans
+
+re: down all
+
+status:
+	@echo "[+] Checking BATMAN mesh status..."
+	@if ! command -v batctl >/dev/null; then \
+		echo "[!] Warning: batctl not installed. Mesh networking will not work."; \
+		exit 0; \
+	fi
+	@if ! ip link show bat0 >/dev/null 2>&1; then \
+		echo "[!] Warning: bat0 not found. Mesh networking will not work."; \
+		exit 0; \
+	fi
+	@echo "[+] bat0 IPs:"
+	@ip -4 addr show dev bat0 | grep inet | awk '{print $$2}' || true
+	@echo ""
+	@echo "[+] Neighbors (batctl n):"
+	@sudo batctl n || true
+	@echo ""
+	@echo "[+] Originators (batctl o):"
+	@sudo batctl o || true
+	@echo ""
+	@echo "[+] Scanning mesh subnet for reachable peers..."
+	@fping -a -q -r1 -g 192.168.199.10 192.168.199.254 2>/dev/null || echo "[!] No mesh nodes reachable"
+
+# Setup environment for Batman project
+setup-batman-env:
+	@if [ ! -f $(ENV_FILE) ]; then \
+		echo "Creating $(ENV_FILE) from example..."; \
+		cp .batman.env.example $(ENV_FILE); \
+		chmod +x ../scripts/prepare-env.sh; \
+		../scripts/prepare-env.sh batman; \
+	else \
+		echo "$(ENV_FILE) already exists."; \
+	fi
+
+# Validate configuration
+validate:
+	@echo "Validating BATMAN configuration..."
+	$(PYTHON) -c "from config.validator import ConfigValidator; \
+		validator = ConfigValidator('$(CONFIG)'); \
+		validator.validate() and validator.validate_network_connectivity() and \
+		validator.validate_mesh_topology()"
+	@echo "Configuration validation successful!"
+
+# Start monitoring
+monitor:
+	@echo "Starting BATMAN monitoring..."
+	@chmod +x $(MONITOR_SCRIPT)
+	@gnome-terminal -- bash -c "$(MONITOR_SCRIPT); exec bash"
+
+# Stop BATMAN component
+stop-batman:
+	@echo "Stopping BATMAN component..."
+	@pkill -f "$(PYTHON) -c from main import start"
+	@pkill -f "$(MONITOR_SCRIPT)"
+
+# Test error handling
+test-error-handling:
+	@echo "Testing error handling..."
+	$(PYTHON) -c "from error.error_handler import ErrorHandler; \
+		handler = ErrorHandler({}); \
+		try: \
+			raise Exception('Test error'); \
+		except Exception as e: \
+			handler.handle_error(e)"
+
+# View logs
+logs-batman:
+	@tail -f batman.log
+
+# Open shell
+sh-batman:
+	@bash

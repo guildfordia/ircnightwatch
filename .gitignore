@@ -1,0 +1,14 @@
+.idea
+.vscode
+.global.env
+
+# Environment files
+.env
+*.env
+!*.env.example
+
+# Secrets
+secrets/
+*.pem
+*.key
+*.crt

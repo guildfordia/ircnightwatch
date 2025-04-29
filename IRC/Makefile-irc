@@ -1,0 +1,52 @@
+.PHONY: all build up stop down restart clean clean-irc-env rmi logs logs-% sh-% re setup-irc-env
+
+DC = docker-compose -f docker-compose.irc.yml
+ENV_FILE = .irc.env
+IMAGE_NAME = ngircd thelounge nginx
+
+all: setup-irc-env build up
+
+build: setup-irc-env
+	$(DC) --env-file $(ENV_FILE) build
+
+up: setup-irc-env
+	$(DC) --env-file $(ENV_FILE) up -d
+
+stop:
+	$(DC) --env-file $(ENV_FILE) stop
+
+down:
+	$(DC) --env-file $(ENV_FILE) down
+
+restart: stop up
+
+clean:
+	$(DC) --env-file $(ENV_FILE) down --volumes --remove-orphans
+
+clean-irc-env:
+	rm -rf $(ENV_FILE)
+
+rmi:
+	docker rmi $(IMAGE_NAME) || true
+
+logs:
+	$(DC) --env-file $(ENV_FILE) logs -f
+
+logs-%:
+	$(DC) --env-file $(ENV_FILE) logs -f $*
+
+sh-%:
+	$(DC) --env-file $(ENV_FILE) exec $* /bin/bash
+
+re: down all
+
+# Setup environment for IRC project
+setup-irc-env:
+	@if [ ! -f $(ENV_FILE) ]; then \
+		echo "Creating $(ENV_FILE) from example..."; \
+		cp .irc.env.example $(ENV_FILE); \
+		chmod +x ../scripts/prepare-env.sh; \
+		../scripts/prepare-env.sh irc; \
+	else \
+		echo "$(ENV_FILE) already exists."; \
+	fi

@@ -5,6 +5,8 @@ import sys
 import signal
 import os
 import time
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 def resolve_irc_host():
     """Try to connect to host.docker.internal:6667, fallback to 172.17.0.1"""
@@ -27,13 +29,25 @@ CHANNEL = os.getenv("IRC_CHANNEL", "#nightwatch")
 NICKNAME = os.getenv("IRC_NICKNAME", "SentimentBot")
 
 # JSON API Endpoint
-API_URL = os.getenv("API_URL", f"http://{SERVER}:5000/receive")
+API_HOST = os.getenv("SENTIMENT_API_HOST", "sentiment-api")
+API_PORT = os.getenv("SENTIMENT_API_PORT", "6000")
+API_URL = os.getenv("API_URL", f"http://{API_HOST}:{API_PORT}/receive")
+
+# Configure retry strategy
+retry_strategy = Retry(
+    total=5,  # number of retries
+    backoff_factor=1,  # wait 1, 2, 4, 8, 16 seconds between retries
+    status_forcelist=[500, 502, 503, 504],  # HTTP status codes to retry on
+)
+adapter = HTTPAdapter(max_retries=retry_strategy)
+http = requests.Session()
+http.mount("http://", adapter)
 
 running = True
-attempts = 0
 
 def connect_to_irc():
     global running
+    attempts = 0
     while running:
         try:
             print(f"[DEBUG] Connecting to {SERVER}: {PORT}")
@@ -46,42 +60,52 @@ def connect_to_irc():
             irc.send(f"USER {NICKNAME} @ * :Sentiment Analysis Bot\r\n".encode("utf-8"))
 
             last_ping = time.time()
+            joined = False
 
             while running:
-                msg = irc.recv(2048).decode("utf-8", errors="ignore").strip()
+                try:
+                    msg = irc.recv(2048).decode("utf-8", errors="ignore").strip()
+                    if not msg:
+                        print("[WARN] Empty message received, server might be down")
+                        break
 
-                joined = False
+                    if "Server going down" in msg:
+                        print("[INFO] Server is going down, will reconnect...")
+                        break
 
-                if not joined and re.search(r" 001 ", msg):
-                    print(f"[DEBUG] Sending JOIN to {CHANNEL}")
-                    irc.send(f"JOIN {CHANNEL}\r\n".encode("utf-8"))
-                    joined = True
+                    if not joined and re.search(r" 001 ", msg):
+                        print(f"[DEBUG] Sending JOIN to {CHANNEL}")
+                        irc.send(f"JOIN {CHANNEL}\r\n".encode("utf-8"))
+                        joined = True
 
-                if time.time() - last_ping > 60:
-                    print("⏳ Still connected...")
-                    last_ping = time.time()
+                    if time.time() - last_ping > 60:
+                        print("⏳ Still connected...")
+                        last_ping = time.time()
 
-                if msg:
-                    print(f"[IRC] {msg}")
+                    if msg:
+                        print(f"[IRC] {msg}")
 
-                if msg.startswith("PING"):
-                    # irc.send(f"PONG {msg.split()[1]}\r\n".encode("utf-8"))
-                    token = msg.split(":", 1)[1] if ":" in msg else ""
-                    pong_msg = f"PONG :{token}\r\n"
-                    print(f"[PING] -> {pong_msg.strip()}")
-                    irc.send(pong_msg.encode("utf-8"))
+                    if msg.startswith("PING"):
+                        token = msg.split(":", 1)[1] if ":" in msg else ""
+                        pong_msg = f"PONG :{token}\r\n"
+                        print(f"[PING] -> {pong_msg.strip()}")
+                        irc.send(pong_msg.encode("utf-8"))
 
-                match = re.search(r":(\S+)!.* PRIVMSG (\S+) :(.*)", msg)
-                if match:
-                    user, channel, message = match.groups()
-                    print(f"{user} in {channel}: {message}")
+                    match = re.search(r":(\S+)!.* PRIVMSG (\S+) :(.*)", msg)
+                    if match:
+                        user, channel, message = match.groups()
+                        print(f"{user} in {channel}: {message}")
 
-                    # Send message to Sentiment API
-                    payload = {"user": user, "message": message}
-                    try:
-                        requests.post(API_URL, json=payload, timeout=5)
-                    except Exception as e:
-                        print(f"[WARN] Failed to send to API: {e}")
+                        # Send message to Sentiment API with retry mechanism
+                        payload = {"user": user, "message": message}
+                        try:
+                            http.post(API_URL, json=payload, timeout=5)
+                        except Exception as e:
+                            print(f"[WARN] Failed to send to API after retries: {e}")
+
+                except socket.error as e:
+                    print(f"[ERROR] Socket error: {e}")
+                    break
 
         except Exception as e:
             attempts += 1
@@ -93,6 +117,7 @@ def connect_to_irc():
             except:
                 pass
             print("[INFO] Attempting to reconnect...")
+            time.sleep(5)  # Add delay before reconnection attempt
 
 def signal_handler(sig, frame):
     print("Shutting down gracefully...")

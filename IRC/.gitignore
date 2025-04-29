@@ -1,5 +1,5 @@
 # Ignore .env file (only track .env.example)
-.env
+.irc.env
 
 # Ignore .idea file
 ../.idea/

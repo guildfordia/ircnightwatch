@@ -28,9 +28,9 @@
               rel="noopener"
           >{{ message.whois.actual_ip }}</a
           >
-					<i v-if="message.whois.actual_hostname != message.whois.actual_ip">
+					<!-- i v-if="message.whois.actual_hostname != message.whois.actual_ip">
 						({{ message.whois.actual_hostname }})</i
-          >
+				-->
 				</dd>
 			</template>
 

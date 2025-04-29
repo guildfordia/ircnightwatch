@@ -1,0 +1,82 @@
+.PHONY: all build up stop down restart clean clean-sentiment-env rmi logs logs-% sh-% re test setup-sentiment-env logs-window setup-networks clean-cache
+
+DC = docker-compose -f docker-compose.sentiment.yml
+ENV_FILE = .sentiment.env
+IMAGE_NAME = sentiment-api sentiment-bot
+CACHE_DIR_REQ = ./API/cache/requirements
+CACHE_DIR_MODEL = ./API/cache/models
+all: setup-sentiment-env build up logs-window
+
+build: setup-sentiment-env
+	$(DC) --env-file $(ENV_FILE) build
+
+up: setup-sentiment-env
+	$(DC) --env-file $(ENV_FILE) up -d
+
+stop:
+	$(DC) --env-file $(ENV_FILE) stop
+
+down:
+	$(DC) --env-file $(ENV_FILE) down
+
+restart: stop up
+
+clean:
+	$(DC) --env-file $(ENV_FILE) down --volumes --remove-orphans
+
+clean-sentiment-env:
+	rm -rf $(ENV_FILE)
+
+rmi:
+	docker rmi $(IMAGE_NAME) || true
+
+logs:
+	$(DC) --env-file $(ENV_FILE) logs -f
+
+logs-api:
+	docker logs sentiment-api -f
+
+logs-%:
+	$(DC) --env-file $(ENV_FILE) logs -f $*
+
+sh-%:
+	$(DC) --env-file $(ENV_FILE) exec $* /bin/bash
+
+test:
+	echo "No tests defined yet"
+
+re: down all
+
+clean-cache:
+	rm -rf $(CACHE_DIR_REQ)/*
+	rm -rf $(CACHE_DIR_MODEL)/*
+
+# Setup environment for Sentiment project
+setup-sentiment-env:
+	@if [ ! -f $(ENV_FILE) ]; then \
+		echo "Creating $(ENV_FILE) from example..."; \
+		cp .sentiment.env.example $(ENV_FILE); \
+		chmod +x ../scripts/prepare-env.sh; \
+		../scripts/prepare-env.sh sentiment; \
+	else \
+		echo "$(ENV_FILE) already exists."; \
+	fi
+
+# Setup networks for Sentiment project
+#setup-networks:
+#	@echo "Setting up networks..."
+#	@if ! docker network inspect sentiment-net >/dev/null 2>&1; then \
+#		echo "Creating sentiment-net network..."; \
+#		docker network create sentiment-net; \
+#	else \
+#		echo "sentiment-net network already exists."; \
+#	@if ! docker network inspect irc-net >/dev/null 2>&1; then \
+#		echo "Creating irc-net network..."; \
+#		docker network create irc-net; \
+#	else \
+#		echo "irc-net network already exists."; \
+#	fi
+
+logs-window:
+	echo "Opening new terminal window..."
+	osascript -e 'tell application "Terminal" to do script "cd $(PWD)/sentiment && make -f Makefile-sentiment logs-api"'

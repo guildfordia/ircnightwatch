@@ -2,35 +2,31 @@ services:
   ngircd:
     image: lscr.io/linuxserver/ngircd:latest
     container_name: ngircd
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
+    env_file:
+      - ./.irc.env
     volumes:
       - ./ngircd:/config
     ports:
-      - 6667:6667
+      - "${IRC_PORT}:${IRC_PORT}"
     restart: unless-stopped
     networks:
       - irc-net
 
   thelounge:
-    build: thelounge
+    image: thelounge
+    build:
+      context: ./thelounge
+      dockerfile: thelounge.Dockerfile
     container_name: thelounge
+    env_file:
+      - ./.irc.env
     ports:
-      - "9000:9000"  # Web client
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
+      - "${THELOUNGE_PORT}:${THELOUNGE_PORT}"  # Web client
     volumes:
       - ./thelounge/config:/config
-      #- ./thelounge/themes/abyss.css:/app/thelounge/client/themes/default.css
       - ./thelounge/themes/abyss.css:/app/thelounge/public/themes/default.css
       - ./thelounge/themes/morning.css:/app/thelounge/public/themes/morning.css
       - ./thelounge/assets/theodore.jpg:/app/thelounge/public/img/theodore.jpg
-      #- ./thelounge/source/client/css/style.css:/app/thelounge/client/css/style.css
-      #- ./thelounge/source/client/components/MessageTypes/join.vue:/app/thelounge/client/components/MessageTypes/join.vue
     depends_on:
       - ngircd
     restart: unless-stopped
@@ -40,11 +36,12 @@ services:
   nginx:
     image: nginx:latest
     container_name: nginx
+    env_file:
+      - ./.irc.env
     ports:
-      - "80:80"
+      - "${NGINX_PORT}:${NGINX_PORT}"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      #- ./nginx/html:/usr/share/nginx/html
     depends_on:
       - thelounge
     networks:
@@ -52,5 +49,5 @@ services:
 
 networks:
   irc-net:
-    name: irc-net
+    name: ${DOCKER_NETWORK}
     external: true

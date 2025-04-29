@@ -1,32 +1,33 @@
 services:
   sentiment-api:
+    image: sentiment-api
     build:
+      dockerfile: api.Dockerfile
       context: ./API
     container_name: sentiment-api
+    env_file:
+      - ./.sentiment.env
     ports:
-      - "5000:5000"  # Expose to host if you want to test from Postman
+      - "${SENTIMENT_API_PORT}:${SENTIMENT_API_PORT}"  # Expose to host if you want to test from Postman
+    volumes:
+      - ./API/cache:/root/.cache
     networks:
       - sentiment-net
-      - irc-net
+      - ${DOCKER_NETWORK}
     restart: unless-stopped
-    environment:
-      - PYTHONUNBUFFERED=1
 
   sentiment-bot:
+    image: sentiment-bot
     build:
+      dockerfile: bot.Dockerfile
       context: ./Bot
     container_name: sentiment-bot
+    env_file:
+      - ./.sentiment.env
     networks:
       - sentiment-net
-      - irc-net
+      - ${DOCKER_NETWORK}
     restart: unless-stopped
-    environment:
-      - IRC_HOST=ngircd
-      - IRC_PORT=6667
-      - IRC_CHANNEL=#nightwatch
-      - IRC_NICKNAME=SentBot
-      - API_URL=http://sentiment-api:5000/receive
-      - PYTHONUNBUFFERED=1
     logging:
       driver: "json-file"
       options:
@@ -37,4 +38,5 @@ networks:
   sentiment-net:
     name: sentiment-net
   irc-net:
+    name: ${DOCKER_NETWORK}
     external: true
