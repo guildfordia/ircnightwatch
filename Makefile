@@ -12,7 +12,7 @@ endif
 .PHONY: all build up stop down restart clean clean-global-env clean-all-env setup-global-env logs-% sh-% re network env-setup rmi prune status clean-cache
 
 # Default: build & run all
-all: build up
+all: env-setup build up
 
 # Ensure irc-net exists before anything that uses it
 network:
